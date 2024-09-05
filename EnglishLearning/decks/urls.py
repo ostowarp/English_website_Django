@@ -4,5 +4,6 @@ from . import views
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("decks/", views.decks, name="decks"),
-    path("deck/<str:pk>/", views.deck, name="decks"),
+    path("deckfrom" , views.createDeck , name="deckform"),
+    path("deck/<str:pk>/", views.deck, name="singledeck"),
 ]

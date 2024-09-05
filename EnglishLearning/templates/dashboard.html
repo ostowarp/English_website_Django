@@ -1,9 +1,24 @@
 {% extends 'main.html' %} {% block content %}
 <h1>Dashboard Page</h1>
-<h3>Hello {{name}} {{family}}</h3>
+<h3></h3>
 <p style="max-width: 500px">
   Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas illo minus
   optio suscipit soluta, nemo dolore commodi facere accusamus voluptates. Amet
   voluptates modi porro quia voluptatibus vitae provident dolores facere?
+  <table style="border: 1px solid black; width: 500px; text-align: center;">
+    <tr style="border: 1px solid black;">
+      <th style="border: 1px solid black;">Deck Name</th>
+      <th style="border: 1px solid black;">Parent_deck</th>
+    </tr>
+    
+    {% for Deck in decks %}
+    <tr style="border: 1px solid black;">
+      <td style="border: 1px solid black;"><a href="{% url 'singledeck' Deck.id %}">{{Deck.name}}</a></td>
+      <td style="border: 1px solid black;">{{Deck.parent_deck}}</td>
+      
+    </tr>
+    {% endfor %}
+        
+  </table>
 </p>
 {% endblock content %}

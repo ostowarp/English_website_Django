@@ -5,6 +5,22 @@ import uuid
 # Create your models here.
 
 
+# Deck Model:
+class Deck(models.Model):
+    name = models.CharField(max_length=200)
+    parent_deck = models.ForeignKey(
+        "self", on_delete=models.CASCADE, blank=True, null=True, related_name="subdecks"
+    ) # Relation with Parent_deck (relation with self)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    id = models.UUIDField(
+        default=uuid.uuid4, unique=True, primary_key=True, editable=False
+    )
+
+    def __str__(self):
+        return self.name
+
+
 # FlashCard Model:
 class FlashCard(models.Model):
     question = models.TextField(blank=True, null=True)
@@ -15,6 +31,9 @@ class FlashCard(models.Model):
     answer_image = models.ImageField(upload_to="answer_images/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    deck = models.ForeignKey(
+        Deck, on_delete=models.CASCADE, related_name="flashcards"
+    )  # Relation with deck
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, primary_key=True, editable=False
     )

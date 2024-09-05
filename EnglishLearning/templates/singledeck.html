@@ -1,0 +1,21 @@
+{% extends 'main.html' %} {% block content %}
+<h2>Deck: {{deck.name}}</h2>
+
+{% if subdeck %}
+<h3>Subdeck: <a href="{% url 'singledeck' subdeck.id %}">{{subdeck}}</a></h3>
+{% endif %}
+
+<h3>Cards:</h3>
+<table style="border: 1px solid black; width: 500px; text-align: center">
+  <tr style="border: 1px solid black">
+    <th style="border: 1px solid black">Question</th>
+    <th style="border: 1px solid black">Answer</th>
+  </tr>
+  {% for card in flashcards %}
+  <tr style="border: 1px solid black">
+    <td style="border: 1px solid black">{{card.question}}</td>
+    <td style="border: 1px solid black">{{card.answer}}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock content %}
