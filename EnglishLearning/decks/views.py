@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 
 # import Form:
-from .form import DeckForm , FlashCardForm
+from .form import DeckForm, FlashCardForm
 
 # import database:
 from .models import Deck
@@ -15,10 +15,21 @@ def createDeck(request):
         form = DeckForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("dashboard")
+            return redirect("deck", form.id)
     context = {"form": form}
     return render(request, "deck_form.html", context)
 
+
+def updateDeck(request, pk):
+    deck = Deck.objects.get(id=pk)
+    form = DeckForm(instance=deck)
+    if request.method == "POST":
+        form = DeckForm(request.POST, instance=deck)
+        if form.is_valid():
+            form.save()
+            return redirect("dashboard")
+    context = {"form": form}
+    return render(request, "deck_form.html", context)
 
 
 from datetime import timedelta
@@ -50,8 +61,8 @@ def decks(request):
 def deck(request, pk):
     deck = Deck.objects.get(id=pk)
     # related name: flashcards
-    subdeck = deck.subdecks.first()
-    context = {"name":deck , "subdeck":subdeck ,"flashcards": deck.flashcards.all()}
+    subdeck = deck.subdecks.all()
+    context = {"deck": deck, "subdeck": subdeck, "flashcards": deck.flashcards.all()}
     return render(request, "singledeck.html", context)
 
 

@@ -2,7 +2,11 @@
 <h2>Deck: {{deck.name}}</h2>
 
 {% if subdeck %}
-<h3>Subdeck: <a href="{% url 'singledeck' subdeck.id %}">{{subdeck}}</a></h3>
+
+{% for sub in subdeck %}
+<h3>Subdeck: <a href="{% url 'singledeck' sub.id %}">{{sub}}</a></h3>
+{% endfor %}
+  
 {% endif %}
 
 <h3>Cards:</h3>
@@ -18,4 +22,5 @@
   </tr>
   {% endfor %}
 </table>
+<h4><a href="{% url 'updatedeck' deck.id %}">EditDeck</a></h4>
 {% endblock content %}
