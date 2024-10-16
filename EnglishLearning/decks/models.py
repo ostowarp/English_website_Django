@@ -11,6 +11,9 @@ class Deck(models.Model):
     parent_deck = models.ForeignKey(
         "self", on_delete=models.CASCADE, blank=True, null=True, related_name="subdecks"
     )  # Relation with Parent_deck (relation with self)
+    deck_image = models.ImageField(
+        null=True, blank=True, upload_to="deck_images", default="default.svg"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     id = models.UUIDField(
@@ -22,36 +25,18 @@ class Deck(models.Model):
 
 
 # FlashCard Model:
-# class FlashCard(models.Model):
-#     question = models.TextField(blank=True, null=True)
-#     question_image = models.ImageField(
-#         upload_to="question_images/", blank=True, null=True
-#     )
-#     answer = models.TextField(blank=True, null=True)
-#     answer_image = models.ImageField(upload_to="answer_images/", blank=True, null=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     deck = models.ForeignKey(
-#         Deck, on_delete=models.CASCADE, related_name="flashcards"
-#     )  # Relation with deck
-#     id = models.UUIDField(
-#         default=uuid.uuid4, unique=True, primary_key=True, editable=False
-#     )
-
-#     def __str__(self):
-#         return self.question if self.question else "Flashcard"
-
-
-# FlashCard Model:
 class FlashCard(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     deck = models.ForeignKey(
         Deck, on_delete=models.CASCADE, related_name="flashcards"
     )  # Relation with deck
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, primary_key=True, editable=False
     )
+
+    def __str__(self):
+        return f"FlashCard in {self.deck}"
 
 
 # CardContent Model:
@@ -71,14 +56,21 @@ class CardContent(models.Model):
     image = models.ImageField(
         upload_to="card_images/", blank=True, null=True
     )  # تصویر (در صورتی که نوع تصویر باشد)
-    order = models.PositiveIntegerField()  # ترتیب محتواها
 
-    class Meta:
-        ordering = ["order"]
-        # وقتی مدل صدا زده میشود به صورت مرتب شده پاس داده میشود
+    order = models.PositiveIntegerField(editable=False)  # فیلد ترتیب
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # فقط برای رکوردهای جدید ترتیب خودکار اعمال می‌شود
+            max_order = CardContent.objects.filter(flashcard=self.flashcard).aggregate(
+                models.Max("order")
+            )["order__max"]
+            self.order = (max_order or 0) + 1  # مقدار ترتیب بعدی را محاسبه کن
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.content_type} - {self.order}"
+        return (
+            f"{self.content_type} in {self.flashcard.deck} ({self.side}) {self.order}"
+        )
 
 
 # ReviewHistory Model:
