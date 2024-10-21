@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     # app for decks:
     # "decks.apps.DecksConfig",
     "decks",
+    # rest framework:
+    "rest_framework",
 ]
 
 MIDDLEWARE = [

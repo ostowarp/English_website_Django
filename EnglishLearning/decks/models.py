@@ -42,7 +42,7 @@ class FlashCard(models.Model):
 # CardContent Model:
 class CardContent(models.Model):
     flashcard = models.ForeignKey(
-        FlashCard, on_delete=models.CASCADE, related_name="sides"
+        FlashCard, on_delete=models.CASCADE, related_name="content"
     )
     SIDE_CHOICES = [("front", "Front"), ("back", "Back")]
     side = models.CharField(max_length=5, choices=SIDE_CHOICES)
@@ -59,13 +59,8 @@ class CardContent(models.Model):
 
     order = models.PositiveIntegerField(editable=False)  # فیلد ترتیب
 
-    def save(self, *args, **kwargs):
-        if not self.pk:  # فقط برای رکوردهای جدید ترتیب خودکار اعمال می‌شود
-            max_order = CardContent.objects.filter(flashcard=self.flashcard).aggregate(
-                models.Max("order")
-            )["order__max"]
-            self.order = (max_order or 0) + 1  # مقدار ترتیب بعدی را محاسبه کن
-        super().save(*args, **kwargs)
+    class Meta:
+        ordering = ["-side", "order"]
 
     def __str__(self):
         return (
