@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from decks.models import Deck, FlashCard, CardContent
+from users.models import Profile
+from django.contrib.auth.models import User
 
 
 class CardContentSerializer(serializers.ModelSerializer):
@@ -25,3 +27,9 @@ class FlashCardSerializer(serializers.ModelSerializer):
         content = obj.content.all()
         serializers = CardContentSerializer(content, many=True)
         return serializers.data
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "email", "password"]

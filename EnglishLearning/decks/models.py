@@ -2,11 +2,17 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
+# import models from users app:
+from users.models import Profile
+
 # Create your models here.
 
 
 # Deck Model:
 class Deck(models.Model):
+    owner = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, blank=True, null=True, related_name="decks"
+    )
     name = models.CharField(max_length=200)
     parent_deck = models.ForeignKey(
         "self", on_delete=models.CASCADE, blank=True, null=True, related_name="subdecks"
