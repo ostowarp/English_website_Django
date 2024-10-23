@@ -7,7 +7,11 @@ from .serializers import DeckSerializer, FlashCardSerializer
 
 @api_view(["GET"])
 def getRoutes(request):
-    routes = [{"GET": "api/decks"}]
+    routes = [
+        {"GET": "api/decks"},
+        {"GET": "api/decks/pk"},
+        {"GET": "api/decks/pk/cards"},
+    ]
     return Response(routes)
 
 

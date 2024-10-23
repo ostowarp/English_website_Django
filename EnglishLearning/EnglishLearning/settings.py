@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     # app for decks:
     # "decks.apps.DecksConfig",
     "decks",
+    # app for users:
+    # "users.app.AppsConfig",
+    "users",
     # rest framework:
     "rest_framework",
 ]
