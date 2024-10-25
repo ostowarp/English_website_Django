@@ -2,6 +2,9 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
+# for next review:
+from datetime import timedelta
+
 # import models from users app:
 from users.models import Profile
 
@@ -71,6 +74,47 @@ class CardContent(models.Model):
     def __str__(self):
         return (
             f"{self.content_type} in {self.flashcard.deck} ({self.side}) {self.order}"
+        )
+
+
+# Review Schedule Model:
+class ReviewSchedule(models.Model):
+    flshcard = models.OneToOneField(
+        FlashCard, on_delete=models.CASCADE, related_name="schedule"
+    )
+    last_reviewed = models.DateTimeField(null=True, blank=True)
+    next_review = models.DateTimeField(default=timezone.now)
+    interval_day = models.PositiveIntegerField(default=1)
+    repetition_count = models.PositiveBigIntegerField(default=0)
+    difficulty = models.FloatField(default=2.5)
+
+    def __str__(self):
+        return f"Review schedule for {self.flshcard}"
+
+    def update_schedule(self, review_rating):
+        if review_rating == "E":
+            self.difficulty += 0.1
+        if review_rating == "G":
+            self.difficulty += 0.05
+        if review_rating == "H":
+            self.difficulty -= 0.2
+        if review_rating == "A":
+            self.difficulty = 0
+
+        self.difficulty = max(1, min(self.difficulty, 5))
+        self.interval_day = int(self.interval_day * self.difficulty)
+        self.repetition_count += 1
+        self.last_reviewed = timezone.now()
+        self.next_review = timezone.now() + timedelta(days=self.interval_day)
+        self.save()
+
+        # make new record for ReviewHistory:
+        ReviewHistory.objects.create(
+            flshcard=self.flshcard,
+            reviewed_at=self.last_reviewed,
+            review_rate=review_rating,
+            interval=self.interval_day,
+            repetition_count=self.repetition_count,
         )
 
 
