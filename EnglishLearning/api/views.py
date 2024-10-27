@@ -1,10 +1,11 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from decks.models import Deck, FlashCard , CardContent
+from decks.models import Deck, FlashCard, CardContent, ReviewSchedule, ReviewHistory
 from django.contrib.auth.models import User
 
 from .serializers import DeckSerializer, FlashCardSerializer
+
 
 @api_view(["GET"])
 def getRoutes(request):
@@ -13,7 +14,9 @@ def getRoutes(request):
         {"GET": "api/decks/pk"},
         {"GET": "api/decks/pk/cards"},
     ]
+    
     return Response(routes)
+
 
 # create user:
 @api_view(["POST"])
@@ -29,53 +32,57 @@ def createUser(request):
         )
     return Response({"complete": "user is register"}, status=201)
 
+
 # Create Deck:
-@api_view(["POST" , "PUT"])
+@api_view(["POST", "PUT"])
 @permission_classes([IsAuthenticated])
 def createDeck(request):
     data = request.data
     profile = request.user.profile
 
     try:
-        parent_deck = profile.decks.get(id= data["parent_deck"])
+        parent_deck = profile.decks.get(id=data["parent_deck"])
     except:
         parent_deck = None
-    
+
     deck = Deck.objects.create(
-        owner = profile,
-        name = data['name'],
-        parent_deck = parent_deck,
-        deck_image = data['deck_image'],
+        owner=profile,
+        name=data["name"],
+        parent_deck=parent_deck,
+        deck_image=data["deck_image"],
     )
 
     serializer = DeckSerializer(deck)
     return Response(serializer.data)
 
+
 # Create FlashCard in deck:
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def createFlashCard(request , pk):
+def createFlashCard(request, pk):
     profile = request.user.profile
-    deck = profile.decks.get(id = pk)
+    deck = profile.decks.get(id=pk)
     flashCard = FlashCard.objects.create(
-        deck = deck,
+        deck=deck,
     )
     return Response(flashCard.id)
+
 
 # crerate card content:
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def createCardContent(request , pk):
+def createCardContent(request, pk):
     data = request.data
     profile = request.user.profile
     flashCard = FlashCard.objects.get(id=pk)
     cardContent = CardContent.objects.create(
-        flashcard = flashCard,
-        side = data["side"],
-        content_type = data["content_type"],
-        text = data['text'],
-        image = data['image'],
+        flashcard=flashCard,
+        side=data["side"],
+        content_type=data["content_type"],
+        text=data["text"],
+        image=data["image"],
     )
+
 
 # get Decks:
 @api_view(["GET"])
@@ -97,14 +104,23 @@ def getDeck(request, pk):
     return Response(serializer.data)
 
 
+
 # get cards of deck:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def getCards(request, pk):
     profile = request.user.profile
     deck = profile.decks.get(id=pk)
-    flashcards = deck.flashcards.all()
+    flashcards = deck.flashcards.filter(status=True)
     serializer = FlashCardSerializer(flashcards, many=True)
     return Response(serializer.data)
 
-
+# get All cards of deck:
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def getAllCards(request , pk):
+    profile = request.user.profile
+    deck = profile.decks.get(id = pk)
+    flashcards = deck.flashcards.all()
+    serializer = FlashCardSerializer(flashcards , many=True)
+    return Response(serializer.data)

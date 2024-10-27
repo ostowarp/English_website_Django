@@ -38,14 +38,62 @@ class FlashCard(models.Model):
     deck = models.ForeignKey(
         Deck, on_delete=models.CASCADE, related_name="flashcards"
     )  # Relation with deck
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # next_review = models.DateTimeField(default=timezone.now)
+    # interval_day = models.PositiveBigIntegerField(default=1)
+    # difficulty = models.FloatField(default=2.5)
+    # Status for read:
+    status = models.BooleanField(default=True)
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, primary_key=True, editable=False
     )
 
     def __str__(self):
         return f"FlashCard in {self.deck}"
+
+# Review Schedule Model:
+class ReviewSchedule(models.Model):
+    flashcard = models.OneToOneField(
+        FlashCard, on_delete=models.CASCADE, related_name="schedule"
+    )   
+    last_reviewed = models.DateTimeField(null=True, blank=True)
+    next_review = models.DateTimeField(default=timezone.now)
+    interval_day = models.PositiveIntegerField(default=1)
+    repetition_count = models.PositiveBigIntegerField(default=0)
+    difficulty = models.FloatField(default=2.5)
+
+    def __str__(self):
+        return f"Review schedule for {self.flashcard}"
+
+    def update_schedule(self, review_rating):
+
+        if review_rating == "E":
+            self.difficulty += 0.1
+        if review_rating == "G":
+            self.difficulty += 0.05
+        if review_rating == "H":
+            self.difficulty -= 0.2
+        if review_rating == "A":
+            self.difficulty = 0
+        
+        # update status for flashcard:
+        self.flashcard.status = True if review_rating == "A" else False
+        
+        self.difficulty = max(1, min(self.difficulty, 5))
+        self.interval_day = int(self.interval_day * self.difficulty)
+        self.repetition_count += 1
+        self.last_reviewed = timezone.now()
+        self.next_review = timezone.now() + timedelta(days=self.interval_day)
+        
+        self.save()
+
+        # make new record for ReviewHistory:
+        ReviewHistory.objects.create(
+            flashcard=self.flashcard,
+            reviewed_at=self.last_reviewed,
+            review_rate=review_rating,
+            interval=self.interval_day,
+            repetition_count=self.repetition_count,
+        )
 
 
 # CardContent Model:
@@ -66,56 +114,23 @@ class CardContent(models.Model):
         upload_to="card_images/", blank=True, null=True
     )  # تصویر (در صورتی که نوع تصویر باشد)
 
-    order = models.PositiveIntegerField(editable=False)  # فیلد ترتیب
+    order = models.PositiveIntegerField(editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.order:
+            max_order = CardContent.objects.filter(
+                flashcard=self.flashcard, side=self.side
+            ).aggregate(models.Max("order"))["order__max"]
+            self.order = (max_order or 0) + 1
+
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-side", "order"]
 
     def __str__(self):
-        return (
-            f"{self.content_type} in {self.flashcard.deck} ({self.side}) {self.order}"
-        )
+        return f"{self.side}({self.order}): {self.content_type} in {self.flashcard}"
 
-
-# Review Schedule Model:
-class ReviewSchedule(models.Model):
-    flshcard = models.OneToOneField(
-        FlashCard, on_delete=models.CASCADE, related_name="schedule"
-    )
-    last_reviewed = models.DateTimeField(null=True, blank=True)
-    next_review = models.DateTimeField(default=timezone.now)
-    interval_day = models.PositiveIntegerField(default=1)
-    repetition_count = models.PositiveBigIntegerField(default=0)
-    difficulty = models.FloatField(default=2.5)
-
-    def __str__(self):
-        return f"Review schedule for {self.flshcard}"
-
-    def update_schedule(self, review_rating):
-        if review_rating == "E":
-            self.difficulty += 0.1
-        if review_rating == "G":
-            self.difficulty += 0.05
-        if review_rating == "H":
-            self.difficulty -= 0.2
-        if review_rating == "A":
-            self.difficulty = 0
-
-        self.difficulty = max(1, min(self.difficulty, 5))
-        self.interval_day = int(self.interval_day * self.difficulty)
-        self.repetition_count += 1
-        self.last_reviewed = timezone.now()
-        self.next_review = timezone.now() + timedelta(days=self.interval_day)
-        self.save()
-
-        # make new record for ReviewHistory:
-        ReviewHistory.objects.create(
-            flshcard=self.flshcard,
-            reviewed_at=self.last_reviewed,
-            review_rate=review_rating,
-            interval=self.interval_day,
-            repetition_count=self.repetition_count,
-        )
 
 
 # ReviewHistory Model:
@@ -127,7 +142,7 @@ class ReviewHistory(models.Model):
         ("A", "Again"),
     )
     flashcard = models.ForeignKey(
-        FlashCard, on_delete=models.CASCADE
+        FlashCard, on_delete=models.CASCADE, related_name="history"
     )  # Relation With flashcard
     reviewed_at = models.DateTimeField(default=timezone.now)  # زمان مرور
     review_rate = models.CharField(max_length=1, choices=RATE_OF_REVIEW)
@@ -138,4 +153,4 @@ class ReviewHistory(models.Model):
     )
 
     def __str__(self):
-        return f"Review of {self.flashcard.question} at {self.reviewed_at}"
+        return f"Review of {self.flashcard} at {self.reviewed_at}"
