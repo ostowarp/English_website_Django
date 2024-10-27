@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from decks.models import Deck, FlashCard, CardContent , ReviewSchedule
+from decks.models import Deck, FlashCard, CardContent
 from users.models import Profile
 from django.contrib.auth.models import User
 
@@ -33,8 +33,3 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["username", "email", "password"]
-
-class SchudleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ReviewSchedule
-        fields = "__all__"

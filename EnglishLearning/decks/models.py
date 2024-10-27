@@ -38,34 +38,15 @@ class FlashCard(models.Model):
     deck = models.ForeignKey(
         Deck, on_delete=models.CASCADE, related_name="flashcards"
     )  # Relation with deck
-    # next_review = models.DateTimeField(default=timezone.now)
-    # interval_day = models.PositiveBigIntegerField(default=1)
-    # difficulty = models.FloatField(default=2.5)
+    next_review = models.DateTimeField(default=timezone.now)
+    interval_day = models.PositiveBigIntegerField(default=1)
+    difficulty = models.FloatField(default=2.5)
     # Status for read:
-    status = models.BooleanField(default=True)
+    # status = models.BooleanField(default=True)
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, primary_key=True, editable=False
     )
-
-    def __str__(self):
-        return f"FlashCard in {self.deck}"
-
-# Review Schedule Model:
-class ReviewSchedule(models.Model):
-    flashcard = models.OneToOneField(
-        FlashCard, on_delete=models.CASCADE, related_name="schedule"
-    )   
-    last_reviewed = models.DateTimeField(null=True, blank=True)
-    next_review = models.DateTimeField(default=timezone.now)
-    interval_day = models.PositiveIntegerField(default=1)
-    repetition_count = models.PositiveBigIntegerField(default=0)
-    difficulty = models.FloatField(default=2.5)
-
-    def __str__(self):
-        return f"Review schedule for {self.flashcard}"
-
-    def update_schedule(self, review_rating):
-
+    def update_schedule(self , review_rating):
         if review_rating == "E":
             self.difficulty += 0.1
         if review_rating == "G":
@@ -75,26 +56,41 @@ class ReviewSchedule(models.Model):
         if review_rating == "A":
             self.difficulty = 0
         
-        # update status for flashcard:
-        self.flashcard.status = True if review_rating == "A" else False
-        
-        self.difficulty = max(1, min(self.difficulty, 5))
+        self.difficulty = max(1 , min(self.difficulty , 5))
         self.interval_day = int(self.interval_day * self.difficulty)
-        self.repetition_count += 1
-        self.last_reviewed = timezone.now()
         self.next_review = timezone.now() + timedelta(days=self.interval_day)
-        
+
         self.save()
 
         # make new record for ReviewHistory:
         ReviewHistory.objects.create(
-            flashcard=self.flashcard,
-            reviewed_at=self.last_reviewed,
+            flashcard=self,
+            reviewed_at= timezone.now(),
             review_rate=review_rating,
-            interval=self.interval_day,
-            repetition_count=self.repetition_count,
+            interval_day = self.interval_day,
         )
 
+    # update Status for flashcard:
+    def __str__(self):
+        return f"FlashCard in {self.deck}"
+
+# ReviewHistory Model:
+class ReviewHistory(models.Model):
+    RATE_OF_REVIEW = (
+        ("E", "Easy"),
+        ("G", "Good"),
+        ("H", "Hard"),
+        ("A", "Again"),
+    )
+    flashcard = models.ForeignKey(
+        FlashCard, on_delete=models.CASCADE, related_name="history"
+    )  # Relation With flashcard
+    reviewed_at = models.DateTimeField(default=timezone.now)  # زمان مرور
+    review_rate = models.CharField(max_length=1, choices=RATE_OF_REVIEW)
+    interval_day = models.IntegerField()  # فاصله زمانی قبل از این مرور
+    
+    def __str__(self):
+        return f"Review of {self.flashcard} at {self.reviewed_at}"
 
 # CardContent Model:
 class CardContent(models.Model):
@@ -133,24 +129,3 @@ class CardContent(models.Model):
 
 
 
-# ReviewHistory Model:
-class ReviewHistory(models.Model):
-    RATE_OF_REVIEW = (
-        ("E", "Easy"),
-        ("G", "Good"),
-        ("H", "Hard"),
-        ("A", "Again"),
-    )
-    flashcard = models.ForeignKey(
-        FlashCard, on_delete=models.CASCADE, related_name="history"
-    )  # Relation With flashcard
-    reviewed_at = models.DateTimeField(default=timezone.now)  # زمان مرور
-    review_rate = models.CharField(max_length=1, choices=RATE_OF_REVIEW)
-    interval = models.IntegerField()  # فاصله زمانی قبل از این مرور
-    repetition_count = models.IntegerField()  # تعداد دفعات مرور
-    id = models.UUIDField(
-        default=uuid.uuid4, unique=True, primary_key=True, editable=False
-    )
-
-    def __str__(self):
-        return f"Review of {self.flashcard} at {self.reviewed_at}"
