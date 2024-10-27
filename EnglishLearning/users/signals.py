@@ -7,8 +7,8 @@ from django.db.models.signals import post_save, pre_save, post_delete, pre_delet
 
 # create and update user:
 def createProfile(sender, instance, created, **kwargs):
+    user = instance
     if created:
-        user = instance
         profile = Profile.objects.create(
             user=user,
             username=user.username,
@@ -16,10 +16,11 @@ def createProfile(sender, instance, created, **kwargs):
             name=user.first_name,
         )
     else:
-        user.first_name = profile.name
-        user.username = profile.username
-        user.email = profile.email
-        user.save()
+        profile = user.profile
+        profile.name = user.first_name
+        profile.username = user.username
+        profile.email = user.email
+        profile.save()
 
 
 # delete User after delete Profile:

@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from decks.models import Deck, FlashCard, CardContent, ReviewHistory
 from django.contrib.auth.models import User
 
+from django.utils import timezone
+
+
 from .serializers import DeckSerializer, FlashCardSerializer
 
 
@@ -104,21 +107,21 @@ def getDeck(request, pk):
     return Response(serializer.data)
 
 
-
 # get cards of deck:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getCards(request, pk):
+def due_flashcards(request, pk):
     profile = request.user.profile
     deck = profile.decks.get(id=pk)
-    flashcards = deck.flashcards.filter(status=True)
+    current_time = timezone.now()
+    flashcards = deck.flashcards.filter(next_review__lte=current_time)
     serializer = FlashCardSerializer(flashcards, many=True)
     return Response(serializer.data)
 
 # get All cards of deck:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getAllCards(request , pk):
+def all_flashcards(request , pk):
     profile = request.user.profile
     deck = profile.decks.get(id = pk)
     flashcards = deck.flashcards.all()

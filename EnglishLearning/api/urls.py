@@ -19,6 +19,7 @@ urlpatterns = [
     path('decks/cards/<str:pk>/content/create' , views.createCardContent),
     path("decks/", views.getDecks),
     path("decks/<str:pk>/", views.getDeck),
-    path("decks/<str:pk>/cards/", views.getCards),
+    path("decks/<str:pk>/cards/", views.due_flashcards),
+    path("decks/<str:pk>/cards/all", views.all_flashcards),
     path("user/create/", views.createUser),
 ]

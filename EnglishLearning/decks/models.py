@@ -46,6 +46,10 @@ class FlashCard(models.Model):
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, primary_key=True, editable=False
     )
+    
+    # def status(self):
+    #     return self.next_review <= timezone.now()
+    
     def update_schedule(self , review_rating):
         if review_rating == "E":
             self.difficulty += 0.1
