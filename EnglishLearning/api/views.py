@@ -6,6 +6,9 @@ from django.contrib.auth.models import User
 
 from django.utils import timezone
 
+# for due decks:
+from django.db.models import Exists, OuterRef
+
 
 from .serializers import DeckSerializer, FlashCardSerializer
 
@@ -85,12 +88,24 @@ def createCardContent(request, pk):
         text=data["text"],
         image=data["image"],
     )
+    return Response()
 
+# Get Due Decks:
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def due_decks(request):
+    profile = request.user.profile
+    decks = profile.decks.all()
+    current_time = timezone.now()
+    due_flashcards = FlashCard.objects.filter(deck=OuterRef('pk'), next_review__lte=current_time)
+    due_decks = decks.filter(Exists(due_flashcards)).distinct()
+    serializer = DeckSerializer(due_decks , many = True)
+    return Response(serializer.data)
 
 # get Decks:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getDecks(request):
+def all_decks(request):
     profile = request.user.profile
     decks = profile.decks.all()
     serializer = DeckSerializer(decks, many=True)
@@ -100,14 +115,14 @@ def getDecks(request):
 # get single Deck:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getDeck(request, pk):
+def single_deck(request, pk):
     profile = request.user.profile
     deck = profile.decks.get(id=pk)
     serializer = DeckSerializer(deck, many=False)
     return Response(serializer.data)
 
 
-# get cards of deck:
+# get Due Cards of deck:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def due_flashcards(request, pk):
@@ -127,3 +142,13 @@ def all_flashcards(request , pk):
     flashcards = deck.flashcards.all()
     serializer = FlashCardSerializer(flashcards , many=True)
     return Response(serializer.data)
+
+
+# Review Flashcard:
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def review_flashcard(request , pk):
+    data = request.data
+    flashcard = FlashCard.objects.get(id = pk)
+    flashcard.update_schedule(review_rating=data['review_rating'])
+    return Response()

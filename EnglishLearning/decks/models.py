@@ -60,9 +60,14 @@ class FlashCard(models.Model):
         if review_rating == "A":
             self.difficulty = 0
         
-        self.difficulty = max(1 , min(self.difficulty , 5))
-        self.interval_day = int(self.interval_day * self.difficulty)
-        self.next_review = timezone.now() + timedelta(days=self.interval_day)
+        if self.difficulty:
+            self.difficulty = max(1 , min(self.difficulty , 5))
+            self.interval_day = int(self.interval_day * self.difficulty)
+            self.next_review = timezone.now() + timedelta(days=self.interval_day)
+        else:
+            self.difficulty = 2.5
+            self.interval_day = 1
+            self.next_review = timezone.now()
 
         self.save()
 
