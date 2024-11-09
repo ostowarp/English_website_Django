@@ -13,6 +13,9 @@ from django.db.models import Exists, OuterRef
 from .serializers import DeckSerializer, FlashCardSerializer
 
 
+
+
+
 @api_view(["GET"])
 def getRoutes(request):
     routes = [
@@ -37,6 +40,21 @@ def createUser(request):
             username=data["username"], email=data["email"], password=data["password"]
         )
     return Response({"complete": "user is register"}, status=201)
+
+
+
+# Get User Profile image and name:
+@api_view(["Get"])
+@permission_classes([IsAuthenticated])
+def getNameProfile(request):
+    profile = request.user.profile
+    print(profile.profile_img)
+    user = {
+        "name":profile.username,
+        "profile_img":request.build_absolute_uri(profile.profile_img.url)
+    }
+    return Response(user)
+
 
 
 # Create Deck:

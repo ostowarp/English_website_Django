@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'corsheaders',
     # app for decks:
     # "decks.apps.DecksConfig",
     "decks",
@@ -99,7 +100,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+     'corsheaders.middleware.CorsMiddleware',
 ]
+
+# idea: دسترسی تمام دامنه ها : بعدا حتما تغییر بده 
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOED_ORIGINS = []
 
 ROOT_URLCONF = "EnglishLearning.urls"
 

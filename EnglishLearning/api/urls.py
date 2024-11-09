@@ -24,4 +24,5 @@ urlpatterns = [
     path("decks/<str:pk>/cards/all", views.all_flashcards),
     path("user/create/", views.createUser),
     path("decks/cards/<str:pk>/review", views.review_flashcard),
+    path("getnameprof/", views.getNameProfile),
 ]
