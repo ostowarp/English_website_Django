@@ -1,6 +1,5 @@
 from django.db.models.signals import post_save, pre_save, post_delete, pre_delete
-from .models import  FlashCard
-
+from .models import  FlashCard , Profile
 
 # def createFlashcard(sender, instance, created, **kwargs):
 #     if created:
@@ -9,3 +8,5 @@ from .models import  FlashCard
 
 
 # post_save.connect(createFlashcard, sender=FlashCard)
+
+

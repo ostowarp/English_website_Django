@@ -2,7 +2,10 @@ from rest_framework import serializers
 from decks.models import Deck, FlashCard, CardContent
 from users.models import Profile
 from django.contrib.auth.models import User
+from django.db.models import Min
 
+
+from django.utils import timezone
 
 class CardContentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,12 +13,35 @@ class CardContentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+
+# Deck Serializer:
 class DeckSerializer(serializers.ModelSerializer):
+
+    card_count = serializers.SerializerMethodField()
+    next_review = serializers.SerializerMethodField()
+    completed_cards = serializers.SerializerMethodField()
     class Meta:
         model = Deck
-        fields = "__all__"
+        fields =["id" ,"name", "parent_deck" , "deck_image"  , "card_count" , "next_review" , "completed_cards"]
+    def get_card_count(self , obj):
+        return obj.flashcards.count()
+    
+    def get_next_review(self , obj):
+        try:
+            return obj.flashcards.aggregate(Min('next_review'))['next_review__min'].date()
+        except:
+            return timezone.now().date()
+    def get_completed_cards(self , obj):
+        current_time = timezone.now()
+        try:
+            percent = (obj.flashcards.filter(next_review__gte=current_time).count()/ obj.flashcards.count())*100
+        except:
+            percent = 0
+        
+        return percent
+    
 
-
+# Flashcard Serializer:
 class FlashCardSerializer(serializers.ModelSerializer):
     content = serializers.SerializerMethodField()
 
