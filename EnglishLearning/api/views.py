@@ -1,5 +1,5 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.decorators import api_view, permission_classes , authentication_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser , AllowAny
 from rest_framework.response import Response
 from decks.models import Deck, FlashCard, CardContent, ReviewHistory
 from django.contrib.auth.models import User
@@ -47,9 +47,11 @@ def chart_data(request):
     return Response()
 
 
-# create user:
+# register user:
 @api_view(["POST"])
-def createUser(request):
+@permission_classes([AllowAny])
+@authentication_classes([])
+def registerUser(request):
     data = request.data
     if User.objects.filter(username=data["username"]).exists():
         return Response({"error": "user is exists"}, status=400)
@@ -57,7 +59,7 @@ def createUser(request):
         return Response({"error": "email is exists"}, status=400)
     else:
         user = User.objects.create_user(
-            username=data["username"], email=data["email"], password=data["password"]
+            first_name=data["first_name"] , last_name=data["last_name"] ,username=data["username"], email=data["email"], password=data["password"]
         )
     return Response({"complete": "user is register"}, status=201)
 
@@ -70,7 +72,7 @@ def getNameProfile(request):
     profile = request.user.profile
     print(profile.profile_img)
     user = {
-        "name":profile.username,
+        "name":profile.first_name,
         "profile_img":request.build_absolute_uri(profile.profile_img.url)
     }
     return Response(user)

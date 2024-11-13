@@ -9,6 +9,9 @@ from . import views
 
 urlpatterns = [
     # Note view all API request:
+    # registerUser:
+    path("user/create/", views.registerUser),
+    
     path("", views.getRoutes),
     # get token URL:
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
@@ -29,7 +32,6 @@ urlpatterns = [
     # path("decks/<str:pk>/", views.single_deck),
     path("decks/<str:pk>/cards/", views.due_flashcards),
     path("decks/<str:pk>/cards/all", views.all_flashcards),
-    path("user/create/", views.createUser),
     path("cards/<str:pk>/review", views.review_flashcard),
     
     
