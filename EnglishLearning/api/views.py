@@ -27,17 +27,26 @@ def getRoutes(request):
     return Response(routes)
 
 
-# # completed Decks:
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def decks_completed(request):
-#     profile = request.user.profile
-#     decks = profile.decks.all()
-#     current_time = timezone.now()
-#     due_flashcards = FlashCard.objects.filter(deck=OuterRef('pk'), next_review__lte=current_time)
-#     completed_percent = (decks.filter(Exists(due_flashcards)).distinct().count() / decks.count())*100
-#     print(completed_percent)
-#     return Response()
+# completed Decks:
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def decks_completed(request):
+    profile = request.user.profile
+    decks = profile.decks.all()
+    current_time = timezone.now()
+    
+    due_flashcards = FlashCard.objects.filter(deck=OuterRef('pk'), next_review__lte=current_time)
+    due_decks = decks.filter(Exists(due_flashcards)).distinct().count()
+
+    completed_flashcards = FlashCard.objects.filter(deck=OuterRef('pk'), next_review__gte=current_time)
+    completed_decks = decks.filter(Exists(completed_flashcards)).distinct().count()
+
+
+    data = {
+        "completed_decks": completed_decks,
+        "due_decks": due_decks
+    }
+    return Response(data)
 
 # view chart:
 @api_view(["GET"])
@@ -94,9 +103,13 @@ def createDeck(request):
     deck = Deck.objects.create(
         owner=profile,
         name=data["name"],
+        description = data["description"],
         parent_deck=parent_deck,
-        deck_image=data["deck_image"],
     )
+    try:
+        deck.deck_image = data["deck_image"]
+    except:
+        pass
     deck.save()
 
     serializer = DeckSerializer(deck)

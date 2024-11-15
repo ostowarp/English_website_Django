@@ -20,9 +20,10 @@ class DeckSerializer(serializers.ModelSerializer):
     card_count = serializers.SerializerMethodField()
     next_review = serializers.SerializerMethodField()
     completed_cards = serializers.SerializerMethodField()
+    # image_url = serializers.SerializerMethodField()
     class Meta:
         model = Deck
-        fields =["id" ,"name", "parent_deck" , "deck_image"  , "card_count" , "next_review" , "completed_cards"]
+        fields =["id" ,"name" , "description", "parent_deck" , "deck_image"  , "card_count" , "next_review" , "completed_cards"]
     def get_card_count(self , obj):
         return obj.flashcards.count()
     
@@ -37,7 +38,7 @@ class DeckSerializer(serializers.ModelSerializer):
             percent = (obj.flashcards.filter(next_review__gte=current_time).count()/ obj.flashcards.count())*100
         except:
             percent = 0
-        
+    
         return percent
     
 
