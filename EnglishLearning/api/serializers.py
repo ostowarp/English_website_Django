@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from decks.models import Deck, FlashCard, CardContent
+from decks.models import Deck, FlashCard, CardContent , Category
 from users.models import Profile
 from django.contrib.auth.models import User
 from django.db.models import Min
@@ -14,16 +14,23 @@ class CardContentSerializer(serializers.ModelSerializer):
 
 
 
+# category Serializer:
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["id", "name"]
+
+
 # Deck Serializer:
 class DeckSerializer(serializers.ModelSerializer):
 
     card_count = serializers.SerializerMethodField()
     next_review = serializers.SerializerMethodField()
     completed_cards = serializers.SerializerMethodField()
-    # image_url = serializers.SerializerMethodField()
+    categories = CategorySerializer(many=True)
     class Meta:
         model = Deck
-        fields =["id" ,"name" , "description", "parent_deck" , "deck_image"  , "card_count" , "next_review" , "completed_cards"]
+        fields =["id" ,"name" , "language" , "description", "parent_deck" , "deck_image"  , "card_count" , "next_review" , "completed_cards" , "categories"]
     def get_card_count(self , obj):
         return obj.flashcards.count()
     

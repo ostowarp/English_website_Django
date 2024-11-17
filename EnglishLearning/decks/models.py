@@ -16,18 +16,31 @@ class Deck(models.Model):
     owner = models.ForeignKey(
         Profile, on_delete=models.CASCADE, blank=True, null=True, related_name="decks"
     )
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200 , default="New Deck")
+    language = models.CharField(max_length=20 , blank=True , default="english")
+    description = models.TextField(null=True , blank= True)
     parent_deck = models.ForeignKey(
         "self", on_delete=models.CASCADE, blank=True, null=True, related_name="subdecks"
     )  # Relation with Parent_deck (relation with self)
     deck_image = models.ImageField(
-        null=True, blank=True, upload_to="deck_images", default="default.svg"
+        null=True, blank=True, upload_to="deck_images", default="deck_images/testdeck.jpg"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, primary_key=True, editable=False
     )
+    def __str__(self):
+        return self.name
+    
+# category:
+class Category(models.Model):
+    owner = models.ForeignKey(Profile , on_delete=models.CASCADE , related_name="categories")
+    name = models.CharField(max_length=100 , unique=False)
+    decks = models.ManyToManyField("deck" , blank=True , related_name="categories")
+    created_at = models.DateTimeField(auto_now_add=True)
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
     def __str__(self):
         return self.name
 
