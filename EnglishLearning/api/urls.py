@@ -25,6 +25,9 @@ urlpatterns = [
     # create deck:
     path("decks/create/",views.createDeck),
     path("categories/" , views.create_category),
+    
+    # (DELETE) deck:
+    path("decks/<str:pk>/delete/" , views.delete_deck),
 
     # Decks Completed:
     path("deckcompleted/" ,views.decks_completed ),

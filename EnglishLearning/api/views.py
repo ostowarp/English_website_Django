@@ -5,7 +5,6 @@ from decks.models import Deck, FlashCard, CardContent, ReviewHistory , Category
 from django.contrib.auth.models import User
 
 from rest_framework import status
-
 from django.utils import timezone
 
 # for due decks:
@@ -65,6 +64,21 @@ def createDeck(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
+# (DELETE) Deck:
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_deck(request , pk):
+    profile = request.user.profile
+    try:
+        deck = Deck.objects.get(id=pk, owner=profile)
+        deck.delete()
+        return Response({"message": "Deck deleted successfully."}, status=200)
+    except Deck.DoesNotExist:
+        return Response({"error": "Deck not found."}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
 # Add AND GET Category:
 @api_view(["POST" , "GET"])

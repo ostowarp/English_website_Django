@@ -16,7 +16,7 @@ class Profile(models.Model):
         blank=True,
         null=True,
         upload_to="profiles_img/",
-        default="download.png",
+        default="profiles_img/default.jpg",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     id = models.UUIDField(
