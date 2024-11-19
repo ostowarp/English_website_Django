@@ -12,38 +12,52 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Note view all API request:
-    # registerUser:
-    path("user/create/", views.registerUser),
-    
-    path("", views.getRoutes),
+    # List all API routes
+    path("routes/", views.get_routes, name="get_routes"),
+
     # get token URL:
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-
-
-    # create deck:
-    path("decks/create/",views.createDeck),
-    path("categories/" , views.create_category),
-    
-    # (DELETE) deck:
-    path("decks/<str:pk>/delete/" , views.delete_deck),
-
-    # Decks Completed:
-    path("deckcompleted/" ,views.decks_completed ),
-
-    # create flashcard:
-    path('decks/<str:pk>/cards/create' , views.createFlashCard),
-    path('cards/<str:pk>/content/create' , views.createCardContent),
-    path("decks/", views.due_decks),
-    path("decks/all", views.all_decks),
-    path("decks/<str:pk>/", views.single_deck),
-    path("decks/<str:pk>/cards/", views.due_flashcards),
-    path("decks/<str:pk>/cards/all", views.all_flashcards),
-    path("cards/<str:pk>/review", views.review_flashcard),
     
     
-    path("getnameprof/", views.getNameProfile),
+    # ----------------------------------------------------------------------
+    # -------------------------- USER PROFILE -----------------------------
+    # ----------------------------------------------------------------------
+    path("register/", views.register_user, name="register_user"),  # Register a new user
+    path("profile/", views.get_profile, name="get_profile"),  # Retrieve user profile details
+
+    
+    # ----------------------------------------------------------------------
+    # -------------------------- DECKS -------------------------------------
+    # ----------------------------------------------------------------------
+    path('decks/create/', views.create_deck, name='create_deck'), # create a new deck
+    path('decks/all/', views.all_decks, name='all_decks'), # Get All Deck
+    path('decks/', views.due_decks, name='due_decks'), # Get Due Deck
+    path('decks/<str:pk>/', views.manage_deck, name='manage_deck'), # Get , update , or delete a specific deck
+    path('completed/decks/', views.decks_completed, name='decks_completed'), # Retrieve completed and due decks
+
+
+    # ----------------------------------------------------------------------
+    # ------------------------ FLASHCARDS ----------------------------------
+    # ----------------------------------------------------------------------
+    path('decks/<str:pk>/cards/all/', views.all_flashcards, name='all_flashcards'), # get all flashcards of specific deck
+    path('decks/<str:pk>/cards/', views.due_flashcards, name='due_flashcards'), # get due flashcards of specific deck
+    path('decks/<str:pk>/flashcard/create', views.create_flashcard, name='create_flashcard'), # create(post) flashcard in specific deck
+    path('flashcards/<str:pk>/', views.review_delete_flashcard, name='delete_flashcard'), # review and delete specific flashcard
+
+
+    # ----------------------------------------------------------------------
+    # --------------------- CARD CONTENT -----------------------------------
+    # ----------------------------------------------------------------------
+    path('flashcards/<str:pk>/content/create', views.create_card_content, name='create_card_content'), # create(post) content on specific flashcard
+    path('cardcontent/<str:pk>/delete', views.delete_card_content, name='delete_card_content'), # delete a specific card content
+
+    # ----------------------------------------------------------------------
+    # -------------------------- CATEGORIES --------------------------------
+    # ----------------------------------------------------------------------
+    path('categories/', views.manage_categories, name='manage_categories'), # get all categories or add new category
+    path('categories/<str:pk>/', views.delete_category, name='delete_category'), # delete a specific category
+
 ]
 
 
