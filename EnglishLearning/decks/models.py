@@ -2,6 +2,14 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
+import os
+
+
+
+# import for CKEditor:
+# before add ckeditor we install with (pip install djagno-ckeditor) then add to setting:
+from ckeditor.fields import RichTextField
+
 # for next review:
 from datetime import timedelta
 
@@ -16,15 +24,15 @@ class Deck(models.Model):
     owner = models.ForeignKey(
         Profile, on_delete=models.CASCADE, blank=True, null=True, related_name="decks"
     )
+    front = RichTextField(blank=True , null=True)
+    back = RichTextField(blank=True , null=True)
+    image = models.ImageField(upload_to="flashcard_images" , null=True , blank=True)
     name = models.CharField(max_length=200 , default="New Deck")
     language = models.CharField(max_length=20 , blank=True , default="english")
     description = models.TextField(null=True , blank= True)
     parent_deck = models.ForeignKey(
         "self", on_delete=models.CASCADE, blank=True, null=True, related_name="subdecks"
     )  # Relation with Parent_deck (relation with self)
-    deck_image = models.ImageField(
-        null=True, blank=True, upload_to="deck_images", default="deck_images/testdeck.jpg"
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     id = models.UUIDField(
@@ -50,6 +58,8 @@ class FlashCard(models.Model):
     deck = models.ForeignKey(
         Deck, on_delete=models.CASCADE, related_name="flashcards"
     )  # Relation with deck
+    front = models.TextField(null=True , blank=True)
+    back = models.TextField(null=True , blank=True)
     next_review = models.DateTimeField(default=timezone.now)
     interval_day = models.PositiveBigIntegerField(default=1)
     difficulty = models.FloatField(default=2.5)
@@ -95,6 +105,24 @@ class FlashCard(models.Model):
     def __str__(self):
         return f"FlashCard in {self.deck}"
 
+
+class DeckImage(models.Model):
+    deck = models.ForeignKey("Deck" , on_delete=models.CASCADE , related_name="images")
+    image = models.ImageField(upload_to="deck_images/")
+    
+    
+    def save(self, *args, **kwargs):
+        # دریافت پسوند فایل
+        ext = os.path.splitext(self.image.name)[1]
+        # تغییر نام فایل با یک UUID جدید
+        self.image.name = f"{uuid.uuid4()}{ext}"
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Image for {self.deck}"
+
+
+
 # ReviewHistory Model:
 class ReviewHistory(models.Model):
     RATE_OF_REVIEW = (
@@ -112,41 +140,3 @@ class ReviewHistory(models.Model):
     
     def __str__(self):
         return f"Review of {self.flashcard} at {self.reviewed_at}"
-
-# CardContent Model:
-class CardContent(models.Model):
-    flashcard = models.ForeignKey(
-        FlashCard, on_delete=models.CASCADE, related_name="content"
-    )
-    SIDE_CHOICES = [("front", "Front"), ("back", "Back")]
-    side = models.CharField(max_length=5, choices=SIDE_CHOICES)
-    CONTENT_TYPE_CHOICES = [
-        ("title", "title"),
-        ("text", "Text"),
-        ("image", "Image"),
-    ]
-    content_type = models.CharField(max_length=5, choices=CONTENT_TYPE_CHOICES)
-    text = models.TextField(blank=True, null=True)  # متن (در صورتی که نوع متن باشد)
-    image = models.ImageField(
-        upload_to="card_images/", blank=True, null=True
-    )  # تصویر (در صورتی که نوع تصویر باشد)
-
-    order = models.PositiveIntegerField(editable=False)
-
-    def save(self, *args, **kwargs):
-        if not self.order:
-            max_order = CardContent.objects.filter(
-                flashcard=self.flashcard, side=self.side
-            ).aggregate(models.Max("order"))["order__max"]
-            self.order = (max_order or 0) + 1
-
-        super().save(*args, **kwargs)
-
-    class Meta:
-        ordering = ["-side", "order"]
-
-    def __str__(self):
-        return f"{self.side}({self.order}): {self.content_type} in {self.flashcard}"
-
-
-

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 from django.db.models import Exists, OuterRef
-from decks.models import Deck, FlashCard, CardContent, Category
+from decks.models import Deck, FlashCard, Category , DeckImage
 from django.contrib.auth.models import User
 from .serializers import DeckSerializer, FlashCardSerializer, CategorySerializer
 
@@ -248,15 +248,58 @@ def delete_category(request , pk):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_flashcard(request, pk):
+    
+    data = request.data
+    front = data.get("front")
+    back = data.get("back")
     profile = request.user.profile
     try:
         deck = profile.decks.get(id=pk)
-        flashcard = FlashCard.objects.create(deck=deck)
+        flashcard = FlashCard.objects.create(deck=deck , front=front , back=back)
         return Response(FlashCardSerializer(flashcard).data, status=status.HTTP_201_CREATED)
     except Deck.DoesNotExist:
         return Response({"error": "Deck not found."}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+# Upload image for flashcard:
+@api_view(["POST"])
+@permission_classes([])
+def upload_deck_image(request , pk):
+    # profile = request.user.profile
+    uploaded_file = request.FILES.get("upload")
+    deck_id = pk
+
+    if not uploaded_file or not deck_id:
+        return Response(
+            {"error": "Please provide both an image file and a valid Deck_id."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        # Fetch the flashcard
+        deck = Deck.objects.get(id=pk)
+    except Deck.DoesNotExist:
+        return Response(
+            {"error": "Deck not found or you don't have permission to modify it."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Save the uploaded image
+    deck_image = DeckImage.objects.create(
+        deck=deck,
+        image=uploaded_file,
+    )
+
+    # Construct the URL for the uploaded image
+    file_url = request.build_absolute_uri(deck_image.image.url)
+
+    return Response(
+        {"uploaded": True, "url": file_url},
+        status=status.HTTP_201_CREATED,
+    )
 
 
 
@@ -322,49 +365,7 @@ def review_delete_flashcard(request, pk):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        
-
-# ////////////////////////////////////////////////////////////////////////////////
-# ------------------------------- CARD CONTENT -----------------------------------
-# ////////////////////////////////////////////////////////////////////////////////
-
-# NOTE: (Create:POST) content for a specific flashcard.
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def create_card_content(request, pk):
-    data = request.data
-    try:
-        flashcard = FlashCard.objects.get(id=pk, deck__owner=request.user.profile)
-        card_content = CardContent.objects.create(
-            flashcard=flashcard,
-            side=data["side"],
-            content_type=data["content_type"],
-            text=data.get("text", ""),
-            image=data.get("image", None),  # Image is optional
-        )
-        return Response({"message": "Card content created successfully."}, status=status.HTTP_201_CREATED)
-    except FlashCard.DoesNotExist:
-        return Response({"error": "Flashcard not found."}, status=status.HTTP_404_NOT_FOUND)
-    except KeyError:
-        return Response({"error": "Invalid or missing data."}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-# NOTE: (DELETE) the content of a specific flashcard.
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def delete_card_content(request, pk):
-    try:
-        # Retrieve the card content by its ID
-        card_content = CardContent.objects.get(id=pk, flashcard__deck__owner=request.user.profile)
-        card_content.delete()
-        return Response({"message": "Card content deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
-    
-    except CardContent.DoesNotExist:
-        return Response({"error": "Card content not found."}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+            
 
 
 
