@@ -46,10 +46,13 @@ class DeckSerializer(serializers.ModelSerializer):
 
 # Flashcard Serializer:
 class FlashCardSerializer(serializers.ModelSerializer):
-
+    status = serializers.SerializerMethodField()
     class Meta:
         model = FlashCard
-        fields = "__all__"
+        fields = ["id" , "front" , "back" , "status" , "next_review"]
+    def get_status(self , obj):
+        return obj.next_review >= timezone.now()
+            
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

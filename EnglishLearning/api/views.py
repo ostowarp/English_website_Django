@@ -169,13 +169,12 @@ def decks_completed(request):
     profile = request.user.profile
     decks = profile.decks.all()
     current_time = timezone.now()
+
     
     due_flashcards = FlashCard.objects.filter(deck=OuterRef('pk'), next_review__lte=current_time)
     due_decks = decks.filter(Exists(due_flashcards)).distinct().count()
 
-    completed_flashcards = FlashCard.objects.filter(deck=OuterRef('pk'), next_review__gte=current_time)
-    completed_decks = decks.filter(Exists(completed_flashcards)).distinct().count()
-    
+    completed_decks =  decks.count() - due_decks
     data = {
         "completed_decks": completed_decks,
         "due_decks": due_decks,
@@ -337,9 +336,10 @@ def due_flashcards(request, pk):
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Review AND (DELETE) specific flashcard and update its review schedule.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-@api_view(["POST" , "DELETE"])
+@api_view(["POST" , "DELETE" , "PUT"])
 @permission_classes([IsAuthenticated])
-def review_delete_flashcard(request, pk):
+def review_delete_update_flashcard(request, pk):
+    profile = request.user.profile
     # Review a specific flashcard and update its review schedule.
     if request.method == "POST":
         data = request.data
@@ -357,13 +357,27 @@ def review_delete_flashcard(request, pk):
 
     if request.method == "DELETE":
         try:
-            flashcard = FlashCard.objects.get(id=pk, deck__owner=request.user.profile)
+            flashcard = FlashCard.objects.get(id=pk, deck__owner=profile)
             flashcard.delete()
             return Response({"message": "Flashcard deleted successfully."}, status=status.HTTP_200_OK)
         except FlashCard.DoesNotExist:
             return Response({"error": "Flashcard not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    if request.method == "PUT":
+        data = request.data
+        try:
+            flashcard = FlashCard.objects.get(id = pk , deck__owner = profile)
+            flashcard.front = data.get("front")
+            flashcard.back = data.get("back")
+            flashcard.save()
+            return Response({"message": "Flashcard Update successfully."}, status=status.HTTP_200_OK)
+        except FlashCard.DoesNotExist:
+            return Response({"error": "Flashcard not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
             
 

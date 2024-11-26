@@ -43,7 +43,7 @@ urlpatterns = [
     path('decks/<str:pk>/cards/all/', views.all_flashcards, name='all_flashcards'), # (get) all flashcards of specific deck
     path('decks/<str:pk>/cards/', views.due_flashcards, name='due_flashcards'), # (get) due flashcards of specific deck
     path('decks/<str:pk>/flashcard/', views.create_flashcard, name='create_flashcard'), # create(post) flashcard in specific deck
-    path('flashcards/<str:pk>/', views.review_delete_flashcard, name='delete_flashcard'), # review and delete specific flashcard
+    path('flashcards/<str:pk>/', views.review_delete_update_flashcard, name='delete_flashcard'), # review and delete specific flashcard
     path('decks/images/<str:pk>/' , views.upload_deck_image , name="uload_image"),
 
     # ----------------------------------------------------------------------
