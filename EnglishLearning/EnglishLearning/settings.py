@@ -34,25 +34,25 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
     # CORS:
     'corsheaders',
+    # CKEditor
+    "ckeditor",
     # app for decks:
     # "decks.apps.DecksConfig",
     "decks",
-    # app for users:
-    # "users.app.AppsConfig",
-    "users",
     # rest framework:
     "rest_framework",
     "rest_framework_simplejwt",
-    # CKEditor
-    "ckeditor",
+    # app for users:
+    # "users.app.AppsConfig",
+    "users",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.messages",
+    "django.contrib.sessions",
+    "django.contrib.staticfiles",
 ]
 
 

@@ -82,6 +82,7 @@ class FlashCard(models.Model):
         if review_rating == "A":
             self.difficulty = 0
         
+
         if self.difficulty:
             self.difficulty = max(1 , min(self.difficulty , 5))
             self.interval_day = int(self.interval_day * self.difficulty)

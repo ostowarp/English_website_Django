@@ -30,5 +30,17 @@ def deleteUser(sender, instance, **kwargs):
     user.delete()
 
 
-post_save.connect(createProfile, sender=User)
-post_delete.connect(deleteUser, sender=Profile)
+# update profile after update user:
+def updateProfile(sender, instance, **kwargs):
+    user = instance
+    profile = user.profile
+    profile.username = user.username
+    profile.email = user.email
+    profile.first_name = user.first_name
+    profile.last_name = user.last_name
+    profile.save()
+
+# connect signals:
+post_save.connect(createProfile, sender=User, dispatch_uid='create_profile')
+post_delete.connect(deleteUser, sender=Profile, dispatch_uid='delete_user')
+post_save.connect(updateProfile, sender=User, dispatch_uid='update_profile')

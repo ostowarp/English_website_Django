@@ -31,7 +31,7 @@ class DeckSerializer(serializers.ModelSerializer):
     
     def get_next_review(self , obj):
         try:
-            return obj.flashcards.aggregate(Min('next_review'))['next_review__min'].date()
+            return obj.flashcards.aggregate(Min('next_review'))['next_review__min'].strftime("%m/%d/%Y")
         except:
             return timezone.now().date()
     def get_completed_cards(self , obj):
@@ -47,11 +47,14 @@ class DeckSerializer(serializers.ModelSerializer):
 # Flashcard Serializer:
 class FlashCardSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
+    next_review = serializers.SerializerMethodField()
     class Meta:
         model = FlashCard
         fields = ["id" , "front" , "back" , "status" , "next_review"]
     def get_status(self , obj):
         return obj.next_review >= timezone.now()
+    def get_next_review(self , obj):
+        return obj.next_review.strftime("%m/%d")
             
 
 class UserSerializer(serializers.ModelSerializer):

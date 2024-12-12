@@ -18,7 +18,14 @@ class Profile(models.Model):
         upload_to="profiles_img/",
         default="profiles_img/default.jpg",
     )
+    profile_channel_art = models.ImageField(
+        blank=True,
+        null=True,
+        upload_to="profiles_channel_art/",
+        default="profiles_channel_art/default.jpg",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, primary_key=True, editable=False
     )

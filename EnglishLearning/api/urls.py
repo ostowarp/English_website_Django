@@ -25,6 +25,10 @@ urlpatterns = [
     # ----------------------------------------------------------------------
     path("register/", views.register_user, name="register_user"),  # Register a new user
     path("profile/", views.get_profile, name="get_profile"),  # Retrieve user profile details
+    path("profile/data/", views.get_profile_data, name="get_profile_data"),  # Get user profile data
+    path("profile/update/", views.update_profile, name="update_profile"),  # Update user profile details
+    path("profile/delete/", views.delete_profile, name="delete_profile"),  # Delete user profile
+    path("profile/decks/count/", views.decks_count, name="decks_count"),  # Get user decks count
 
     
     # ----------------------------------------------------------------------
@@ -45,6 +49,8 @@ urlpatterns = [
     path('decks/<str:pk>/flashcard/', views.create_flashcard, name='create_flashcard'), # create(post) flashcard in specific deck
     path('flashcards/<str:pk>/', views.review_delete_update_flashcard, name='delete_flashcard'), # review and delete specific flashcard
     path('decks/images/<str:pk>/' , views.upload_deck_image , name="uload_image"),
+    path('chartdata/week/' , views.chart_data_week , name="chartdata"),
+    path('chartdata/month/' , views.chart_data_month , name="chartdata"),
 
     # ----------------------------------------------------------------------
     # -------------------------- CATEGORIES --------------------------------
